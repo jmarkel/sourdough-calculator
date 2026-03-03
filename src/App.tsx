@@ -50,6 +50,8 @@ export default function App() {
     refreshRecipes,
     loadRecipe,
     deleteSavedRecipe,
+    exportSavedRecipesJson,
+    importSavedRecipesJson,
     resetCalculator,
   } = useRecipeCalculator();
 
@@ -328,6 +330,8 @@ export default function App() {
             onClose={closeRecipes}
             onLoad={loadRecipe}
             onDelete={deleteSavedRecipe}
+            onExportJson={exportSavedRecipesJson}
+            onImportJson={importSavedRecipesJson}
           />
         ) : null}
 

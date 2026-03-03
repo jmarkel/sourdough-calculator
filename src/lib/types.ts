@@ -82,3 +82,9 @@ export type SavedRecipeV1 = {
   savedAt: number;
   state: PersistedStateV1;
 };
+
+export type RecipeJsonExportV1 = {
+  version: 1;
+  exportedAt: number;
+  recipes: SavedRecipeV1[];
+};

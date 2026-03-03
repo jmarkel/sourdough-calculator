@@ -1,7 +1,15 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { appendItem, patchItemById, removeItemById } from "../lib/collections.ts";
 import { createEmptyFlourPart, createEmptyLineItem } from "../lib/defaults.ts";
-import { deleteRecipe, loadRecipeList, LS_KEY, saveRecipeList, upsertRecipe } from "../lib/recipes.ts";
+import {
+  deleteRecipe,
+  exportRecipeJson,
+  loadRecipeList,
+  LS_KEY,
+  parseRecipeJson,
+  saveRecipeList,
+  upsertRecipe,
+} from "../lib/recipes.ts";
 import {
   buildPersistedState,
   createDefaultFlourParts,
@@ -186,6 +194,28 @@ export function useRecipeCalculator() {
     setRecipes(next);
   };
 
+  const exportSavedRecipesJson = () => exportRecipeJson(recipes);
+
+  const importSavedRecipesJson = (json: string) => {
+    const imported = parseRecipeJson(json);
+    if (!imported) {
+      return { ok: false as const, error: "Invalid recipe JSON." };
+    }
+    if (imported.length === 0) {
+      return { ok: false as const, error: "No valid recipes found in JSON." };
+    }
+
+    let next = loadRecipeList();
+    for (const recipe of imported) {
+      next = upsertRecipe(next, recipe);
+    }
+
+    saveRecipeList(next);
+    setRecipes(next);
+
+    return { ok: true as const, imported: imported.length };
+  };
+
   const resetCalculator = () => {
     setRecipeName(defaultCalculatorValues.recipeName);
     setBaseDoughG(defaultCalculatorValues.baseDoughG);
@@ -245,6 +275,8 @@ export function useRecipeCalculator() {
     refreshRecipes,
     loadRecipe,
     deleteSavedRecipe,
+    exportSavedRecipesJson,
+    importSavedRecipesJson,
     resetCalculator,
   };
 }
