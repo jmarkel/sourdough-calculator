@@ -59,6 +59,7 @@ export default function App() {
   } = useRecipeCalculator();
 
   const [copyStatus, setCopyStatus] = useState("");
+  const [showCopyableRecipe, setShowCopyableRecipe] = useState(true);
 
   const result = useMemo(
     () => compute(baseDoughG, hydrationPct, saltPct, levainPct, levainHydrationPct, additions, inclusions, flourParts),
@@ -313,12 +314,20 @@ export default function App() {
                   Check: base dough totals add up to {roundWhole(result.checks.baseTotal)} g (target {roundWhole(result.checks.targetBaseDough)} g).
                 </div>
 
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm text-slate-700 hover:text-slate-900">Copyable formula</summary>
-                  <pre className="mt-2 whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
-                    {recipeText}
-                  </pre>
-                </details>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCopyableRecipe((shown) => !shown)}
+                    className="appearance-none text-sm text-slate-700 hover:text-slate-900"
+                  >
+                    {showCopyableRecipe ? "Hide Copyable Recipe" : "Show Copyable Recipe"}
+                  </button>
+                  {showCopyableRecipe ? (
+                    <pre className="mt-2 whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
+                      {recipeText}
+                    </pre>
+                  ) : null}
+                </div>
               </>
             )}
           </section>
