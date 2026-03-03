@@ -80,7 +80,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 text-slate-900 md:p-10">
-      <div className="mx-auto max-w-5xl">
+      <div className="w-full">
         <header className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Sourdough Ingredient Calculator</h1>
@@ -89,7 +89,7 @@ export default function App() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handleCopy}
@@ -113,7 +113,7 @@ export default function App() {
           </div>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.9fr)]">
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
             <h2 className="text-lg font-medium">Inputs</h2>
 

@@ -48,9 +48,12 @@ export function LineItemEditor({
             e.grams.trim() !== "" ? "grams" : e.pct.trim() !== "" ? "pct" : "empty";
 
           return (
-            <div key={e.id} className="grid grid-cols-12 items-end gap-2">
-              <div className="col-span-12 md:col-span-5">
-                <label className="grid gap-1">
+            <div
+              key={e.id}
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
+            >
+              <div className="col-span-full min-w-0 md:col-span-1">
+                <label className="grid min-w-0 gap-1">
                   <span className="text-xs text-slate-600">Name</span>
                   <input
                     className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"
@@ -61,7 +64,7 @@ export function LineItemEditor({
                 </label>
               </div>
 
-              <div className="col-span-6 min-w-0 md:col-span-3">
+              <div className="min-w-0">
                 <label className="grid min-w-0 gap-1">
                   <span className="text-xs text-slate-600">% of flour</span>
                   <div className="flex min-w-0 overflow-hidden rounded-xl border border-slate-300 bg-white">
@@ -80,7 +83,7 @@ export function LineItemEditor({
                 </label>
               </div>
 
-              <div className="col-span-6 min-w-0 md:col-span-3">
+              <div className="col-span-full min-w-0 md:col-span-1">
                 <label className="grid min-w-0 gap-1">
                   <span className="text-xs text-slate-600">grams</span>
                   <div className="flex min-w-0 overflow-hidden rounded-xl border border-slate-300 bg-white">
@@ -99,11 +102,11 @@ export function LineItemEditor({
                 </label>
               </div>
 
-              <div className="col-span-12 flex justify-end md:col-span-1">
+              <div className="flex justify-end md:pb-0">
                 <button
                   type="button"
                   onClick={() => onRemove(e.id)}
-                  className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-2 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
+                  className="min-h-10 min-w-10 appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-2 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
                   style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
                   title="Remove"
                 >
@@ -111,7 +114,7 @@ export function LineItemEditor({
                 </button>
               </div>
 
-              <div className="col-span-12 text-[11px] text-slate-500">
+              <div className="col-span-full text-[11px] text-slate-500">
                 Enter either % or grams; the other will be calculated.
               </div>
             </div>

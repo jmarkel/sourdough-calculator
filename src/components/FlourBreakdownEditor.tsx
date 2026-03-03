@@ -33,9 +33,12 @@ export function FlourBreakdownEditor({ parts, onAdd, onRemove, onUpdate }: Flour
 
       <div className="mt-3 grid gap-3">
         {parts.map((p) => (
-          <div key={p.id} className="grid grid-cols-12 items-end gap-2">
-            <div className="col-span-12 md:col-span-7">
-              <label className="grid gap-1">
+          <div
+            key={p.id}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 md:grid-cols-[minmax(0,1.75fr)_minmax(7rem,0.9fr)_auto]"
+          >
+            <div className="col-span-full min-w-0 md:col-span-1">
+              <label className="grid min-w-0 gap-1">
                 <span className="text-xs text-slate-600">Flour name</span>
                 <input
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"
@@ -46,7 +49,7 @@ export function FlourBreakdownEditor({ parts, onAdd, onRemove, onUpdate }: Flour
               </label>
             </div>
 
-            <div className="col-span-10 min-w-0 md:col-span-4">
+            <div className="min-w-0">
               <label className="grid min-w-0 gap-1">
                 <span className="text-xs text-slate-600">% of flour</span>
                 <input
@@ -60,11 +63,11 @@ export function FlourBreakdownEditor({ parts, onAdd, onRemove, onUpdate }: Flour
               </label>
             </div>
 
-            <div className="col-span-2 flex justify-end md:col-span-1">
+            <div className="flex justify-end md:pb-0">
               <button
                 type="button"
                 onClick={() => onRemove(p.id)}
-                className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-2 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
+                className="min-h-10 min-w-10 appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-2 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
                 style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
                 title="Remove"
               >
