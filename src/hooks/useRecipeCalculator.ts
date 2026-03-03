@@ -21,6 +21,27 @@ import { normalizeRecipeName } from "../lib/text.ts";
 import type { FlourPart, LineItem, PersistedStateV1, SavedRecipeV1 } from "../lib/types.ts";
 
 export function useRecipeCalculator() {
+  const buildCurrentSavedRecipe = (savedAt: number): SavedRecipeV1 => {
+    const name = normalizeRecipeName(recipeName) || "Untitled recipe";
+    return {
+      name,
+      savedAt,
+      state: buildPersistedState(
+        name,
+        baseDoughG,
+        hydrationPct,
+        saltPct,
+        levainPct,
+        levainHydrationPct,
+        showEffectiveHydration,
+        additions,
+        inclusions,
+        flourParts,
+        notes,
+      ),
+    };
+  };
+
   const persisted = safeJsonParse<PersistedStateV1>(
     typeof window !== "undefined" ? localStorage.getItem(LS_KEY) : null,
   );
@@ -143,26 +164,14 @@ export function useRecipeCalculator() {
       return false;
     }
 
-    const current = buildPersistedState(
-      name,
-      baseDoughG,
-      hydrationPct,
-      saltPct,
-      levainPct,
-      levainHydrationPct,
-      showEffectiveHydration,
-      additions,
-      inclusions,
-      flourParts,
-      notes,
-    );
+    const current = buildCurrentSavedRecipe(Date.now());
     const existing = recipes.find((r) => r.name.toLowerCase() === name.toLowerCase());
     if (existing) {
       const ok = window.confirm(`A recipe named "${name}" already exists. Overwrite it?`);
       if (!ok) return false;
     }
 
-    const next = upsertRecipe(recipes, { name, savedAt: Date.now(), state: current });
+    const next = upsertRecipe(recipes, { ...current, name });
     setRecipes(next);
     saveRecipeList(next);
     return true;
@@ -195,6 +204,7 @@ export function useRecipeCalculator() {
   };
 
   const exportSavedRecipesJson = () => exportRecipeJson(recipes);
+  const exportCurrentRecipeJson = () => exportRecipeJson([buildCurrentSavedRecipe(Date.now())]);
 
   const importSavedRecipesJson = (json: string) => {
     const imported = parseRecipeJson(json);
@@ -214,6 +224,19 @@ export function useRecipeCalculator() {
     setRecipes(next);
 
     return { ok: true as const, imported: imported.length };
+  };
+
+  const previewCurrentRecipeJson = (json: string) => {
+    const imported = parseRecipeJson(json);
+    if (!imported || imported.length === 0) {
+      return { ok: false as const, error: "Invalid recipe JSON." };
+    }
+
+    return { ok: true as const, recipe: imported[0] };
+  };
+
+  const applyCurrentRecipeImport = (recipe: SavedRecipeV1) => {
+    loadRecipe(recipe);
   };
 
   const resetCalculator = () => {
@@ -275,7 +298,10 @@ export function useRecipeCalculator() {
     refreshRecipes,
     loadRecipe,
     deleteSavedRecipe,
+    exportCurrentRecipeJson,
     exportSavedRecipesJson,
+    previewCurrentRecipeJson,
+    applyCurrentRecipeImport,
     importSavedRecipesJson,
     resetCalculator,
   };
