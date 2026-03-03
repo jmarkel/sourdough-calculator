@@ -318,7 +318,8 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setShowCopyableRecipe((shown) => !shown)}
-                    className="appearance-none text-sm text-slate-700 hover:text-slate-900"
+                    className="appearance-none !border-0 !bg-transparent p-0 text-sm text-slate-700 hover:text-slate-900"
+                    style={{ backgroundColor: "transparent", color: "#334155" }}
                   >
                     {showCopyableRecipe ? "Hide Copyable Recipe" : "Show Copyable Recipe"}
                   </button>
