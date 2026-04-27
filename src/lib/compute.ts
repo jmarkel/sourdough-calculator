@@ -18,9 +18,10 @@ export function compute(
   additions: LineItem[],
   inclusions: LineItem[],
   flourParts: FlourPart[],
+  hydrationIncludesLevain = false,
 ): CalcResult {
   const D = parseNum(baseDoughG);
-  const H = parseNum(hydrationPct) / 100;
+  const HInput = parseNum(hydrationPct) / 100;
   const S = parseNum(saltPct) / 100;
   const L = parseNum(levainPct) / 100;
   const LH = parseNum(levainHydrationPct) / 100;
@@ -48,14 +49,27 @@ export function compute(
     })
     .filter((p) => p.name.trim() !== "" || p.pct.trim() !== "");
 
-  if (![D, H, S, L, LH].every((x) => Number.isFinite(x))) {
+  if (![D, HInput, S, L, LH].every((x) => Number.isFinite(x))) {
     return { ok: false, error: "Please enter valid numbers." };
   }
   if (D <= 0) return { ok: false, error: "Dough weight must be > 0." };
-  if (H < 0) return { ok: false, error: "Hydration must be ≥ 0%." };
+  if (HInput < 0) return { ok: false, error: "Hydration must be ≥ 0%." };
   if (S < 0) return { ok: false, error: "Salt must be ≥ 0%." };
   if (L < 0) return { ok: false, error: "Levain must be ≥ 0%." };
   if (LH < 0) return { ok: false, error: "Levain hydration must be ≥ 0%." };
+
+  const levainFlourFraction = L / (1 + LH);
+  const levainWaterFraction = (L * LH) / (1 + LH);
+  const H = hydrationIncludesLevain
+    ? HInput * (1 + levainFlourFraction) - levainWaterFraction
+    : HInput;
+
+  if (H < 0) {
+    return {
+      ok: false,
+      error: "Hydration target is too low for the selected levain % and levain hydration.",
+    };
+  }
 
   const validateList = (label: string, items: LineItemParsed[]) => {
     for (const e of items) {

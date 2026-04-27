@@ -6,9 +6,30 @@ import { FlourBreakdownSummary, OutRow, SummaryCard } from "./components/OutputB
 import { RecipesModal } from "./components/RecipesModal.tsx";
 import { copyToClipboard } from "./lib/clipboard.ts";
 import { compute } from "./lib/compute.ts";
-import { useRecipeCalculator } from "./hooks/useRecipeCalculator.ts";
+import { useHashPage, type AppPage } from "./hooks/useHashPage.ts";
+import { usePwaInstall } from "./hooks/usePwaInstall.ts";
 import { round1, roundWhole } from "./lib/number.ts";
 import { buildRecipeText } from "./lib/recipeText.ts";
+import { useRecipeCalculator } from "./hooks/useRecipeCalculator.ts";
+
+const pageMeta: Record<AppPage, { title: string; subtitle: string }> = {
+  calculator: {
+    title: "Calculator",
+    subtitle: "Adjust flour, hydration, levain, and ingredients.",
+  },
+  results: {
+    title: "Results",
+    subtitle: "View dough outputs and copy your formula.",
+  },
+  recipes: {
+    title: "Recipes",
+    subtitle: "Save, load, backup, and restore recipes.",
+  },
+  settings: {
+    title: "PWA Settings",
+    subtitle: "Install this app and keep it available offline.",
+  },
+};
 
 export default function App() {
   const {
@@ -22,6 +43,8 @@ export default function App() {
     setBaseDoughG,
     hydrationPct,
     setHydrationPct,
+    hydrationIncludesLevain,
+    setHydrationIncludesLevain,
     saltPct,
     setSaltPct,
     levainPct,
@@ -58,12 +81,26 @@ export default function App() {
     resetCalculator,
   } = useRecipeCalculator();
 
+  const { page, setPage } = useHashPage();
+  const { canInstall, promptInstall, installStatus } = usePwaInstall();
+
   const [copyStatus, setCopyStatus] = useState("");
   const [showCopyableRecipe, setShowCopyableRecipe] = useState(true);
 
   const result = useMemo(
-    () => compute(baseDoughG, hydrationPct, saltPct, levainPct, levainHydrationPct, additions, inclusions, flourParts),
-    [baseDoughG, hydrationPct, saltPct, levainPct, levainHydrationPct, additions, inclusions, flourParts],
+    () =>
+      compute(
+        baseDoughG,
+        hydrationPct,
+        saltPct,
+        levainPct,
+        levainHydrationPct,
+        additions,
+        inclusions,
+        flourParts,
+        hydrationIncludesLevain,
+      ),
+    [baseDoughG, hydrationPct, saltPct, levainPct, levainHydrationPct, additions, inclusions, flourParts, hydrationIncludesLevain],
   );
 
   const recipeText = useMemo(
@@ -84,46 +121,20 @@ export default function App() {
     window.setTimeout(() => setCopyStatus(""), 1200);
   };
 
+  const currentPage = pageMeta[page];
+
   return (
-    <div className="min-h-screen bg-slate-50 p-6 text-slate-900 md:p-10">
-      <div className="w-full">
-        <header className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Sourdough Ingredient Calculator</h1>
-            <p className="mt-2 max-w-2xl text-slate-600">
-              Baker’s percentages are based on <b>main flour</b> (main flour = 100%). Levain is a black-box ingredient.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={handleCopy}
-              disabled={!result.ok}
-              className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-3 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200 disabled:opacity-50"
-              style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
-            >
-              Copy formula
-            </button>
-
-            <button
-              type="button"
-              onClick={resetCalculator}
-              className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-3 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
-              style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
-            >
-              Reset
-            </button>
-
-            {copyStatus ? <span className="text-xs text-slate-600">{copyStatus}</span> : null}
-          </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="mx-auto w-full px-4 pb-24 pt-4 sm:px-6 md:px-8 md:pb-8">
+        <header className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Sourdough Calculator PWA</div>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">{currentPage.title}</h1>
+          <p className="mt-1 text-sm text-slate-600">{currentPage.subtitle}</p>
         </header>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.9fr)]">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-            <h2 className="text-lg font-medium">Inputs</h2>
-
-            <div className="mt-4 grid gap-4">
+        {page === "calculator" ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <div className="grid gap-4">
               <label className="grid gap-1">
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="text-sm font-medium text-slate-800">Recipe name</span>
@@ -137,7 +148,7 @@ export default function App() {
                   placeholder="e.g., 78% country loaf"
                 />
 
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={handleSave}
@@ -153,7 +164,16 @@ export default function App() {
                     className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-3 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
                     style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
                   >
-                    Load…
+                    Open Library
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={resetCalculator}
+                    className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-3 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
+                    style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
+                  >
+                    Reset
                   </button>
                 </div>
               </label>
@@ -168,7 +188,22 @@ export default function App() {
 
               <FlourBreakdownEditor parts={flourParts} onAdd={addFlour} onRemove={removeFlour} onUpdate={updateFlour} />
 
-              <Field label="Hydration" suffix="%" value={hydrationPct} onChange={setHydrationPct} hint="Water as % of flour" />
+              <Field
+                label="Hydration"
+                suffix="%"
+                value={hydrationPct}
+                onChange={setHydrationPct}
+                hint={hydrationIncludesLevain ? "Target effective hydration (includes levain)" : "Water as % of main flour"}
+              />
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-slate-300"
+                  checked={hydrationIncludesLevain}
+                  onChange={(e) => setHydrationIncludesLevain(e.target.checked)}
+                />
+                Hydration input includes levain
+              </label>
               <Field label="Salt" suffix="%" value={saltPct} onChange={setSaltPct} hint="Salt as % of flour" />
               <Field
                 label="Levain"
@@ -227,33 +262,31 @@ export default function App() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Anything you want to remember about this formula (timings, flour brand, bake notes, etc.)"
                 />
-
-                <span className="text-xs text-slate-500">Saved automatically in your browser.</span>
               </label>
             </div>
-
-            <details className="mt-5 text-sm">
-              <summary className="cursor-pointer text-slate-700 hover:text-slate-900">Assumptions &amp; math</summary>
-              <div className="mt-3 space-y-2 text-slate-600">
-                <p>
-                  All % inputs are based on <b>main flour</b> (main flour = 100%). Levain is treated as a single ingredient in the dough equation.
-                </p>
-                <p>
-                  <b>Additional ingredients</b> are included in the base dough weight equation. <b>Inclusions</b> are calculated separately and do
-                  not change flour/water/salt/levain.
-                </p>
-              </div>
-            </details>
           </section>
+        ) : null}
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-            <h2 className="text-lg font-medium">Outputs</h2>
+        {page === "results" ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCopy}
+                disabled={!result.ok}
+                className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-3 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200 disabled:opacity-50"
+                style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
+              >
+                Copy Formula
+              </button>
+              {copyStatus ? <span className="text-xs text-slate-600">{copyStatus}</span> : null}
+            </div>
 
             {!result.ok ? (
-              <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">{result.error}</div>
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">{result.error}</div>
             ) : (
               <>
-                <div className="mt-4 grid gap-3">
+                <div className="grid gap-3">
                   <OutRow label="Flour (main dough)" value={result.flour} />
                   <OutRow label="Water" value={result.water} />
                   <OutRow label="Salt" value={result.salt} />
@@ -290,28 +323,6 @@ export default function App() {
                       </div>
                     ) : null}
                   </div>
-
-                  <div className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-slate-800">Levain build (optional)</h3>
-                      <span className="text-xs text-slate-600">grams</span>
-                    </div>
-
-                    <div className="mt-3 grid gap-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-700">Levain flour</span>
-                        <span className="font-medium tabular-nums">{roundWhole(result.levainBuildFlour)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-700">Levain water</span>
-                        <span className="font-medium tabular-nums">{roundWhole(result.levainBuildWater)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5 text-xs text-slate-500">
-                  Check: base dough totals add up to {roundWhole(result.checks.baseTotal)} g (target {roundWhole(result.checks.targetBaseDough)} g).
                 </div>
 
                 <div className="mt-4">
@@ -332,7 +343,95 @@ export default function App() {
               </>
             )}
           </section>
-        </div>
+        ) : null}
+
+        {page === "recipes" ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSave}
+                className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-3 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
+                style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
+              >
+                Save Current Recipe
+              </button>
+              <button
+                type="button"
+                onClick={openRecipes}
+                className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-3 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
+                style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
+              >
+                Manage Library
+              </button>
+              <button
+                type="button"
+                onClick={refreshRecipes}
+                className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-3 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
+                style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
+              >
+                Refresh
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <div className="text-sm font-medium text-slate-800">Saved recipes: {recipes.length}</div>
+              <div className="mt-2 grid gap-2 text-sm">
+                {recipes.slice(0, 8).map((recipe) => (
+                  <div key={`${recipe.name}-${recipe.savedAt}`} className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate font-medium text-slate-800">{recipe.name}</div>
+                      <div className="text-xs text-slate-500">{new Date(recipe.savedAt).toLocaleString()}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => loadRecipe(recipe)}
+                        className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-2 py-1 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
+                        style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
+                      >
+                        Load
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteSavedRecipe(recipe.name)}
+                        className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-rose-700 px-2 py-1 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200"
+                        style={{ backgroundColor: "#ffffff" }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {page === "settings" ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <div className="text-sm text-slate-700">
+              Install this app to your home screen for a native-like launch experience and persistent offline access.
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void promptInstall()}
+                disabled={!canInstall}
+                className="appearance-none rounded-lg border !border-slate-300 !bg-white !text-slate-900 px-3 py-2 text-xs leading-none hover:!bg-slate-100 active:!bg-slate-200 disabled:opacity-50"
+                style={{ backgroundColor: "#ffffff", color: "#0f172a" }}
+              >
+                {canInstall ? "Install App" : "Install Prompt Unavailable"}
+              </button>
+              {installStatus ? <span className="text-xs text-slate-600">{installStatus}</span> : null}
+            </div>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+              iPhone tip: open this site in Safari, tap Share, then choose <b>Add to Home Screen</b>.
+            </div>
+          </section>
+        ) : null}
 
         {recipesOpen ? (
           <RecipesModal
@@ -350,12 +449,33 @@ export default function App() {
             onImportLibraryJson={importSavedRecipesJson}
           />
         ) : null}
-
-        <footer className="mt-8 text-xs text-slate-500">
-          Saved automatically in your browser. Additional ingredients in grams are treated as fixed weights; rounding
-          reconciliation adjusts water so the base dough weight matches exactly.
-        </footer>
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white px-3 py-2 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] md:sticky md:top-0 md:mt-6 md:border md:border-slate-200 md:shadow-sm">
+        <div className="mx-auto grid max-w-3xl grid-cols-4 gap-2">
+          {(
+            [
+              ["calculator", "Calculator"],
+              ["results", "Results"],
+              ["recipes", "Recipes"],
+              ["settings", "Settings"],
+            ] as Array<[AppPage, string]>
+          ).map(([targetPage, label]) => (
+            <button
+              key={targetPage}
+              type="button"
+              onClick={() => setPage(targetPage)}
+              className={`appearance-none rounded-lg border px-2 py-2 text-xs font-medium leading-none ${
+                page === targetPage
+                  ? "border-slate-900 bg-slate-900 text-white"
+                  : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

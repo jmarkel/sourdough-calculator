@@ -67,6 +67,7 @@ export type PersistedStateV1 = {
   recipeName?: string;
   baseDoughG: string;
   hydrationPct: string;
+  hydrationIncludesLevain: boolean;
   saltPct: string;
   levainPct: string;
   levainHydrationPct: string;
