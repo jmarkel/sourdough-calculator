@@ -123,3 +123,22 @@ test("compute rejects invalid base inputs", () => {
     assert.match(result.error, /valid numbers/i);
   }
 });
+
+test("compute can treat hydration input as effective hydration including levain", () => {
+  const result = compute(
+    baseDough,
+    "75",
+    saltPct,
+    levainPct,
+    levainHydrationPct,
+    [{ id: "a", name: "", pct: "", grams: "" }],
+    [{ id: "i", name: "", pct: "", grams: "" }],
+    defaultFlourParts,
+    true,
+  );
+
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.ok(Math.abs(result.effectiveHydrationPct - 75) <= 0.5);
+  }
+});

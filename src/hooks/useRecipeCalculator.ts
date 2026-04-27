@@ -30,6 +30,7 @@ export function useRecipeCalculator() {
         name,
         baseDoughG,
         hydrationPct,
+        hydrationIncludesLevain,
         saltPct,
         levainPct,
         levainHydrationPct,
@@ -58,6 +59,11 @@ export function useRecipeCalculator() {
   );
   const [hydrationPct, setHydrationPct] = useState(
     persisted?.version === 1 ? persisted.hydrationPct : defaultCalculatorValues.hydrationPct,
+  );
+  const [hydrationIncludesLevain, setHydrationIncludesLevain] = useState(
+    persisted?.version === 1
+      ? (persisted.hydrationIncludesLevain ?? defaultCalculatorValues.hydrationIncludesLevain)
+      : defaultCalculatorValues.hydrationIncludesLevain,
   );
   const [saltPct, setSaltPct] = useState(persisted?.version === 1 ? persisted.saltPct : defaultCalculatorValues.saltPct);
   const [levainPct, setLevainPct] = useState(
@@ -93,6 +99,7 @@ export function useRecipeCalculator() {
               recipeName,
               baseDoughG,
               hydrationPct,
+              hydrationIncludesLevain,
               saltPct,
               levainPct,
               levainHydrationPct,
@@ -114,6 +121,7 @@ export function useRecipeCalculator() {
     recipeName,
     baseDoughG,
     hydrationPct,
+    hydrationIncludesLevain,
     saltPct,
     levainPct,
     levainHydrationPct,
@@ -182,6 +190,7 @@ export function useRecipeCalculator() {
     setRecipeName(state.recipeName ?? recipe.name);
     setBaseDoughG(state.baseDoughG);
     setHydrationPct(state.hydrationPct);
+    setHydrationIncludesLevain(state.hydrationIncludesLevain ?? defaultCalculatorValues.hydrationIncludesLevain);
     setSaltPct(state.saltPct);
     setLevainPct(state.levainPct);
     setLevainHydrationPct(state.levainHydrationPct);
@@ -243,6 +252,7 @@ export function useRecipeCalculator() {
     setRecipeName(defaultCalculatorValues.recipeName);
     setBaseDoughG(defaultCalculatorValues.baseDoughG);
     setHydrationPct(defaultCalculatorValues.hydrationPct);
+    setHydrationIncludesLevain(defaultCalculatorValues.hydrationIncludesLevain);
     setSaltPct(defaultCalculatorValues.saltPct);
     setLevainPct(defaultCalculatorValues.levainPct);
     setLevainHydrationPct(defaultCalculatorValues.levainHydrationPct);
@@ -270,6 +280,8 @@ export function useRecipeCalculator() {
     setBaseDoughG,
     hydrationPct,
     setHydrationPct,
+    hydrationIncludesLevain,
+    setHydrationIncludesLevain,
     saltPct,
     setSaltPct,
     levainPct,

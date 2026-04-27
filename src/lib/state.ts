@@ -4,6 +4,7 @@ import type { FlourPart, LineItem, PersistedStateV1 } from "./types.ts";
 export const defaultCalculatorValues = {
   baseDoughG: "1000",
   hydrationPct: "78",
+  hydrationIncludesLevain: false,
   saltPct: "2",
   levainPct: "20",
   levainHydrationPct: "100",
@@ -24,6 +25,7 @@ export function buildPersistedState(
   recipeName: string,
   baseDoughG: string,
   hydrationPct: string,
+  hydrationIncludesLevain: boolean,
   saltPct: string,
   levainPct: string,
   levainHydrationPct: string,
@@ -38,6 +40,7 @@ export function buildPersistedState(
     recipeName,
     baseDoughG,
     hydrationPct,
+    hydrationIncludesLevain,
     saltPct,
     levainPct,
     levainHydrationPct,

@@ -14,6 +14,7 @@ export function makePersistedState(name = "Test"): PersistedStateV1 {
     recipeName: name,
     baseDoughG: baseDough,
     hydrationPct,
+    hydrationIncludesLevain: false,
     saltPct,
     levainPct,
     levainHydrationPct,
